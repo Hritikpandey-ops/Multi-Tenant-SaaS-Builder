@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Gateway service
+  - job_name: 'gateway'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - multitenant-saas
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: gateway
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: $1:3000
+
+  # Auth service
+  - job_name: 'auth'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - multitenant-saas
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: auth
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: $1:3001
+
+  # Postgres exporter (optional)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  # Redis exporter (optional)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
