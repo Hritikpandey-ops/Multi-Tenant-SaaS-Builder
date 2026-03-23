@@ -99,20 +99,19 @@ func main() {
 	// Service routes (proxy to backend services)
 	api := router.Group("/api/v1")
 
-	// Auth routes - forward to auth service (with /auth prefix)
-	auth := api.Group("/auth")
+	// Auth routes - forward to auth service (without /auth prefix to match backend)
 	{
 		// Public auth routes (no JWT required)
-		auth.POST("/register", proxyToService(cfg.Services.Auth))
-		auth.POST("/login", proxyToService(cfg.Services.Auth))
-		auth.POST("/refresh", proxyToService(cfg.Services.Auth))
+		api.POST("/auth/register", proxyToService(cfg.Services.Auth))
+		api.POST("/auth/login", proxyToService(cfg.Services.Auth))
+		api.POST("/auth/refresh", proxyToService(cfg.Services.Auth))
 
 		// Protected auth routes (JWT required)
-		protectedAuth := auth.Use(middleware.AuthMiddleware(jwtManager))
+		protectedAuth := api.Use(middleware.AuthMiddleware(jwtManager))
 		{
-			protectedAuth.GET("/me", proxyToService(cfg.Services.Auth))
-			protectedAuth.POST("/logout", proxyToService(cfg.Services.Auth))
-			protectedAuth.PUT("/me/password", proxyToService(cfg.Services.Auth))
+			protectedAuth.GET("/auth/me", proxyToService(cfg.Services.Auth))
+			protectedAuth.POST("/auth/logout", proxyToService(cfg.Services.Auth))
+			protectedAuth.PUT("/auth/me/password", proxyToService(cfg.Services.Auth))
 		}
 	}
 

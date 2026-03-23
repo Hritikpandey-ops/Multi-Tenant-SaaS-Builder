@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
 
@@ -140,10 +139,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Store refresh token in Redis (with expiration)
-	refreshKey := uuid.New().String()
 	if err := h.redis.Set(
 		ctx,
-		"refresh_token:"+refreshKey,
+		"refresh_token:"+tokenDetails.RefreshToken,
 		user.ID,
 		time.Hour*24*7, // 7 days
 	).Err(); err != nil {
@@ -261,10 +259,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Store refresh token in Redis
-	refreshKey := uuid.New().String()
 	if err := h.redis.Set(
 		ctx,
-		"refresh_token:"+refreshKey,
+		"refresh_token:"+tokenDetails.RefreshToken,
 		user.ID,
 		time.Hour*24*7,
 	).Err(); err != nil {
